@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Term Premium Monitor: duration, the 10-year term premium and the dollar</title>
+<meta name="description" content="A 10-year Treasury’s duration and the Kim-Wright term premium over history, and what the April 2025 term-premium jump did to the U.S. dollar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F1; --ink:#17231E; --muted:#56675F; --rule:#CBD4CE; --field:#FFFFFF;
+  --tp:#2C4F86; --dur:#9A5B23; --usd:#2E6B4F; --band:rgba(205,160,40,.24); --band-edge:#B8891C;
+  --up:#8A2E1E; --down:#2E6B4F;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14201B; --ink:#E3EAE5; --muted:#9AAAA2; --rule:#2E3D36; --field:#1B2923;
+    --tp:#93B3EA; --dur:#E3A86E; --usd:#7DC9A2; --band:rgba(230,190,80,.20); --band-edge:#E0BC5A;
+    --up:#F0927E; --down:#7DC9A2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14201B; --ink:#E3EAE5; --muted:#9AAAA2; --rule:#2E3D36; --field:#1B2923;
+  --tp:#93B3EA; --dur:#E3A86E; --usd:#7DC9A2; --band:rgba(230,190,80,.20); --band-edge:#E0BC5A;
+  --up:#F0927E; --down:#7DC9A2;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Public Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size:1.0625rem; line-height:1.55; font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 1.25rem}
+a{color:var(--tp); text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--band-edge); outline-offset:2px}
+
+/* masthead */
+.mast{display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:1.25rem 0 .9rem; border-bottom:1px solid var(--rule)}
+.mast .name{font-weight:700; letter-spacing:-.01em}
+.mast nav{display:flex; gap:1.1rem; font-size:.92rem}
+.mast nav a{color:var(--muted); text-decoration:none}
+.mast nav a:hover{color:var(--ink)}
+
+/* hero: the finding is the headline */
+.hero{padding:3.5rem 0 2.5rem}
+.hero h1{font-size:clamp(2rem,4.6vw,3.4rem); line-height:1.06; letter-spacing:-.025em; font-weight:700; margin:0 0 1.4rem; max-width:20ch}
+.claim{font-size:clamp(1.15rem,2.1vw,1.42rem); line-height:1.45; font-weight:300; max-width:44ch; margin:0}
+.claim b{font-weight:600}
+.claim .tp{color:var(--tp)} .claim .usd{color:var(--usd)} .claim .dur{color:var(--dur)}
+.status{color:var(--muted); font-size:.95rem; margin-top:1.2rem}
+
+section{padding:2.6rem 0; border-top:1px solid var(--rule)}
+h2{font-size:1.5rem; letter-spacing:-.015em; margin:0 0 .4rem; font-weight:700}
+.lede{color:var(--muted); max-width:68ch; margin:0 0 1.2rem}
+
+/* chart blocks */
+.chart-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:.8rem; margin-bottom:.6rem}
+.key{display:flex; flex-wrap:wrap; gap:1.2rem; font-size:.92rem}
+.key span{display:inline-flex; align-items:center; gap:.45rem}
+.key i{display:inline-block; width:22px; height:3px; border-radius:2px}
+.seg{display:inline-flex; border:1px solid var(--rule); border-radius:6px; overflow:hidden}
+.seg button{font:inherit; font-size:.88rem; background:transparent; color:var(--muted); border:0; padding:.38rem .75rem; cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.canvas-box{position:relative; height:clamp(260px,42vw,420px)}
+.src{font-size:.85rem; color:var(--muted); margin:.6rem 0 0}
+
+/* evidence table */
+.grid2{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:2.4rem; align-items:start}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.finding p{max-width:62ch; margin:0 0 1rem}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:.95rem}
+th,td{padding:.5rem .4rem; border-bottom:1px solid var(--rule); text-align:right; vertical-align:baseline}
+th:first-child,td:first-child{text-align:left; padding-left:0}
+thead th{font-weight:600; color:var(--muted); font-size:.85rem}
+tr.key-row td{font-weight:700}
+td.note{font-size:.82rem; color:var(--muted); text-align:left}
+.pos{color:var(--up)} .neg{color:var(--down)}
+
+/* explorer */
+.explore{display:flex; flex-wrap:wrap; gap:.8rem 1.2rem; align-items:flex-end; margin:0 0 1.2rem}
+.explore label{display:flex; flex-direction:column; font-size:.85rem; color:var(--muted); gap:.25rem}
+.explore input{font:inherit; color:var(--ink); background:var(--field); border:1px solid var(--rule); border-radius:6px; padding:.4rem .55rem}
+.btn{font:inherit; font-weight:600; background:var(--ink); color:var(--paper); border:0; border-radius:6px; padding:.5rem 1rem; cursor:pointer}
+.btn.ghost{background:transparent; color:var(--ink); border:1px solid var(--rule); font-weight:400}
+
+/* method */
+.method{columns:2 320px; column-gap:2.4rem}
+.method p{margin:0 0 1rem; break-inside:avoid}
+.formula{font-style:italic}
+.error{border-left:4px solid var(--up); padding:.8rem 1rem; background:var(--field); max-width:68ch}
+.error code{font-size:.9em}
+footer{padding:2rem 0 3rem; color:var(--muted); font-size:.88rem; border-top:1px solid var(--rule)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important; animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <span class="name">Term Premium Monitor</span>
+    <nav aria-label="Sections">
+      <a href="#history">History</a><a href="#dollar">The dollar</a><a href="#evidence">Evidence</a><a href="#method">Method</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>When Treasuries got riskier in April 2025, the dollar fell instead of rising.</h1>
+    <p class="claim" id="heroClaim">Loading the latest Federal Reserve data…</p>
+    <p class="status" id="status"></p>
+  </div>
+
+  <div id="errorBox" hidden></div>
+
+  <section id="history" aria-labelledby="h-history">
+    <h2 id="h-history">Duration and the 10-year term premium since 1990</h2>
+    <p class="lede">Modified duration says how much a 10-year Treasury’s price moves for a one-point change in its yield. The term premium is the part of that yield that pays investors for locking money up for ten years rather than rolling short bills. Duration is computed on this page from the daily 10-year yield.</p>
+    <div class="chart-head">
+      <div class="key">
+        <span><i style="background:var(--dur)"></i>Modified duration, 10-yr par Treasury (years, right)</span>
+        <span><i style="background:var(--tp)"></i>10-yr term premium (%, left)</span>
+      </div>
+      <div class="seg" role="group" aria-label="Time range for history chart" data-chart="hist">
+        <button data-range="5" aria-pressed="false">5 yrs</button>
+        <button data-range="10" aria-pressed="false">10 yrs</button>
+        <button data-range="20" aria-pressed="false">20 yrs</button>
+        <button data-range="all" aria-pressed="true">Since 1990</button>
+      </div>
+    </div>
+    <div class="canvas-box"><canvas id="histChart" role="img" aria-label="Line chart of modified duration and the 10-year term premium, weekly, since 1990"></canvas></div>
+    <p class="src">Weekly (Friday) values. Term premium: Kim and Wright model, Federal Reserve Board (FRED THREEFYTP10). Duration: computed from the 10-year constant-maturity yield (FRED DGS10).</p>
+  </section>
+
+  <section id="dollar" aria-labelledby="h-dollar">
+    <h2 id="h-dollar">The term premium against the dollar</h2>
+    <p class="lede">The broad dollar index measures the dollar against the currencies of 26 trading partners, weighted by trade. The shaded band is the window measured below.</p>
+    <div class="chart-head">
+      <div class="key">
+        <span><i style="background:var(--tp)"></i>10-yr term premium (%, left)</span>
+        <span><i style="background:var(--usd)"></i>Broad dollar index (Jan 2006 = 100, right)</span>
+      </div>
+      <div class="seg" role="group" aria-label="Time range for dollar chart" data-chart="usd">
+        <button data-range="1" aria-pressed="false">1 yr</button>
+        <button data-range="3" aria-pressed="true">3 yrs</button>
+        <button data-range="all" aria-pressed="false">Since 2006</button>
+      </div>
+    </div>
+    <div class="canvas-box"><canvas id="usdChart" role="img" aria-label="Line chart of the 10-year term premium and the broad dollar index, daily, with the measured window shaded"></canvas></div>
+    <p class="src">Daily values. Dollar: Nominal Broad U.S. Dollar Index, goods and services, Federal Reserve H.10 (FRED DTWEXBGS).</p>
+  </section>
+
+  <section id="evidence" aria-labelledby="h-evidence">
+    <h2 id="h-evidence">The evidence</h2>
+    <div class="grid2">
+      <div class="finding" id="finding"><p>Waiting for data.</p></div>
+      <div class="table-scroll"><table id="defaultTable" aria-describedby="h-evidence"></table></div>
+    </div>
+  </section>
+
+  <section id="explore" aria-labelledby="h-explore">
+    <h2 id="h-explore">Measure any other window</h2>
+    <p class="lede">Pick two dates and the page recomputes every number in the table, including the baseline from the three years before your start date. The shaded band on the dollar chart moves with it.</p>
+    <div class="explore">
+      <label>Start<input type="date" id="exStart"></label>
+      <label>End<input type="date" id="exEnd"></label>
+      <button class="btn" id="exGo">Measure this window</button>
+      <button class="btn ghost" id="exReset">Back to April 2025</button>
+    </div>
+    <div class="table-scroll"><table id="exploreTable"></table></div>
+  </section>
+
+  <section id="method" aria-labelledby="h-method">
+    <h2 id="h-method">Method and sources</h2>
+    <div class="method">
+      <p><b>Duration.</b> The 10-year yield is treated as the yield on a 10-year Treasury trading at par with semiannual coupons. Its modified duration is <span class="formula">D = [1 − (1 + y/2)<sup>−20</sup>] / y</span>, with <i>y</i> the yield as a decimal. At a 4% yield that gives about 8.2 years. A 10-year zero-coupon bond, the instrument the term premium is defined on, would have a longer duration of 10 / (1 + y/2).</p>
+      <p><b>Term premium.</b> The Kim and Wright (2005) three-factor arbitrage-free model, published daily by the Federal Reserve Board. It is a model estimate, not a traded price. The New York Fed’s ACM model gives a different level but similar moves in this episode.</p>
+      <p><b>Price effect of a term-premium change.</b> First-order approximation: ΔP/P ≈ −D × Δ(term premium). It isolates the part of the price change caused by the term premium, holding expected short rates fixed.</p>
+      <p><b>Window changes.</b> Each end of a window uses the last available observation on or before that date, so weekends and holidays are handled the same way for every series. Dollar changes are log changes in percent.</p>
+      <p><b>Baseline.</b> Using Friday-to-Friday changes over the three years before the window starts, the page estimates the usual link between the dollar and the term premium: their correlation and the slope from regressing the weekly dollar change on the weekly term-premium change. The slope times the window’s term-premium change is the dollar move the baseline would have predicted. The surprise is the actual move minus that prediction, divided by the baseline’s residual standard deviation scaled to the window’s length.</p>
+      <p><b>Limits.</b> Two series moving together over one week does not establish cause. The tariff announcements moved growth expectations, Fed expectations and risk appetite at the same time, and the dollar responds to all of them.</p>
+      <p><b>Data.</b> <a href="https://fred.stlouisfed.org/series/THREEFYTP10">THREEFYTP10</a>, <a href="https://fred.stlouisfed.org/series/DGS10">DGS10</a> and <a href="https://fred.stlouisfed.org/series/DTWEXBGS">DTWEXBGS</a> from FRED, Federal Reserve Bank of St. Louis. The model paper: <a href="https://www.federalreserve.gov/pubs/feds/2005/200533/200533abs.html">Kim and Wright (2005)</a>. A GitHub Action re-downloads the series every Tuesday; <span id="retrieved">retrieval date shows here once data loads</span>.</p>
+    </div>
+  </section>
+
+  <footer id="footer">Term Premium Monitor. Built with public Federal Reserve data. Not investment advice.</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+"use strict";
+/* ===== settings ===== */
+const CFG = {
+  windowStart: "2025-04-04",   // close of the last day before the reversal
+  windowEnd:   "2025-04-11",   // close of the week the yield spike peaked
+  baselineYears: 3,
+  author: ""                   // e.g. "L. T. Sanchez" — shown in the footer if filled in
+};
+
+/* ===== analysis (pure functions) ===== */
+//@@ANALYSIS_START
+const DAY = 86400000;
+function toT(s){ const [y,m,d]=s.split("-").map(Number); return Date.UTC(y,m-1,d); }
+function fmtDate(t, opts){ return new Date(t).toLocaleDateString("en-US", Object.assign({timeZone:"UTC", month:"short", day:"numeric", year:"numeric"}, opts||{})); }
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  const head = lines[0].split(",").map(s=>s.trim());
+  const col = name => head.indexOf(name);
+  const iD=0, iTP=col("THREEFYTP10"), iY=col("DGS10"), iU=col("DTWEXBGS");
+  if (iTP<0||iY<0||iU<0) throw new Error("data/fred.csv is missing one of THREEFYTP10, DGS10, DTWEXBGS");
+  const out = {tp:[], y:[], usd:[]};
+  for (let k=1;k<lines.length;k++){
+    const c = lines[k].split(",");
+    const t = toT(c[iD].trim());
+    const push = (arr,i)=>{ const v=(c[i]||"").trim(); if(v!==""&&v!=="."){ const n=+v; if(isFinite(n)) arr.push([t,n]); } };
+    push(out.tp,iTP); push(out.y,iY); push(out.usd,iU);
+  }
+  for (const k in out) out[k].sort((a,b)=>a[0]-b[0]);
+  return out;
+}
+
+/* last observation on or before t */
+function asOf(series, t){
+  let lo=0, hi=series.length-1, ans=-1;
+  while(lo<=hi){ const mid=(lo+hi)>>1; if(series[mid][0]<=t){ans=mid; lo=mid+1;} else hi=mid-1; }
+  return ans<0 ? null : {t:series[ans][0], v:series[ans][1]};
+}
+
+function modDuration(yPct){
+  const y = yPct/100;
+  if (Math.abs(y) < 1e-6) return 10;
+  return (1 - Math.pow(1 + y/2, -20)) / y;
+}
+
+/* last observation in each Saturday–Friday week */
+function weekly(series){
+  const out=[]; let lastKey=null;
+  for (const p of series){
+    const key = Math.floor((Math.floor(p[0]/DAY) - 2) / 7);
+    if (key===lastKey) out[out.length-1]=p; else { out.push(p); lastKey=key; }
+  }
+  return out;
+}
+
+function stats(xs, ys){
+  const n=xs.length; if(n<8) return null;
+  const mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n;
+  let sxx=0, syy=0, sxy=0;
+  for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; }
+  const beta = sxy/sxx, alpha = my - beta*mx;
+  let sse=0; for(let i=0;i<n;i++){ const e=ys[i]-alpha-beta*xs[i]; sse+=e*e; }
+  return { n, corr: sxy/Math.sqrt(sxx*syy), beta, alpha, residSd: Math.sqrt(sse/(n-2)) };
+}
+
+/* Friday-to-Friday changes: x = term premium (bp), y = dollar (log %), over [from, to) */
+function baseline(data, from, to){
+  let f = from; while (new Date(f).getUTCDay()!==5) f += DAY;
+  const xs=[], ys=[];
+  for (let t=f; t+7*DAY<to; t+=7*DAY){
+    const a1=asOf(data.tp,t), a2=asOf(data.tp,t+7*DAY), b1=asOf(data.usd,t), b2=asOf(data.usd,t+7*DAY);
+    if(!a1||!a2||!b1||!b2) continue;
+    if (t - b1.t > 7*DAY || t - a1.t > 7*DAY) continue;   // skip gaps before a series starts
+    xs.push((a2.v-a1.v)*100); ys.push(100*Math.log(b2.v/b1.v));
+  }
+  return stats(xs, ys);
+}
+
+function measure(data, startT, endT, years){
+  const tp0=asOf(data.tp,startT), tp1=asOf(data.tp,endT);
+  const y0=asOf(data.y,startT),  y1=asOf(data.y,endT);
+  const u0=asOf(data.usd,startT), u1=asOf(data.usd,endT);
+  if(!tp0||!tp1||!y0||!y1||!u0||!u1) return null;
+  const D = modDuration(y0.v);
+  const dTPbp = (tp1.v-tp0.v)*100;
+  const dYbp  = (y1.v-y0.v)*100;
+  const dUSD  = 100*Math.log(u1.v/u0.v);
+  const base = baseline(data, startT - years*365.25*DAY, startT);
+  const weeks = Math.max(1, (endT-startT)/(7*DAY));
+  let pred=null, gap=null, z=null;
+  if (base){ pred = base.alpha*weeks + base.beta*dTPbp; gap = dUSD - pred; z = gap/(base.residSd*Math.sqrt(weeks)); }
+  return { startT, endT, tp0, tp1, y0, y1, u0, u1, D, dTPbp, dYbp, dUSD,
+           pxFromTP: -D*dTPbp/100, pxFromY: -D*dYbp/100, base, pred, gap, z, weeks };
+}
+//@@ANALYSIS_END
+
+/* ===== rendering ===== */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const f2 = (v,d=2)=> (v>=0?"+":"−")+Math.abs(v).toFixed(d);
+const abs = (v,d=1)=> Math.abs(v).toFixed(d);
+const sgnClass = v => v>0 ? "pos" : (v<0 ? "neg" : "");
+let DATA=null, histChart=null, usdChart=null, band={from:toT(CFG.windowStart), to:toT(CFG.windowEnd)};
+
+const bandPlugin = {
+  id:"band",
+  beforeDatasetsDraw(chart){
+    const x = chart.scales.x, a = chart.chartArea; if(!x||!band) return;
+    let x0 = x.getPixelForValue(band.from), x1 = x.getPixelForValue(band.to);
+    if (x1 < a.left || x0 > a.right) return;
+    x0=Math.max(x0,a.left); x1=Math.min(x1,a.right);
+    if (x1-x0 < 4){ const m=(x0+x1)/2; x0=m-2; x1=m+2; }
+    const ctx=chart.ctx; ctx.save();
+    ctx.fillStyle=css("--band"); ctx.fillRect(x0,a.top,x1-x0,a.bottom-a.top);
+    ctx.strokeStyle=css("--band-edge"); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x0,a.top); ctx.lineTo(x0,a.bottom); ctx.moveTo(x1,a.top); ctx.lineTo(x1,a.bottom); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+function baseOptions(leftTitle, rightTitle){
+  const ink=css("--muted"), rule=css("--rule");
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false, normalized:true,
+    interaction:{mode:"index", intersect:false},
+    elements:{point:{radius:0, hoverRadius:3}, line:{borderWidth:1.8, tension:0}},
+    plugins:{ legend:{display:false},
+      decimation:{enabled:true, algorithm:"lttb", samples:900},
+      tooltip:{ callbacks:{ title: items => items.length ? fmtDate(items[0].parsed.x) : "",
+                            label: it => ` ${it.dataset.label}: ${it.parsed.y.toFixed(it.dataset.dp)}` } } },
+    scales:{
+      x:{ type:"linear", grid:{color:rule, drawTicks:false}, border:{color:rule},
+          ticks:{ color:ink, maxRotation:0, autoSkip:true, maxTicksLimit:8 } },
+      yL:{ position:"left", grid:{color:rule}, border:{display:false}, ticks:{color:ink}, title:{display:true, text:leftTitle, color:ink} },
+      yR:{ position:"right", grid:{display:false}, border:{display:false}, ticks:{color:ink}, title:{display:true, text:rightTitle, color:ink} }
+    }
+  };
+}
+
+function makeChart(id, datasets, leftTitle, rightTitle){
+  const opts = baseOptions(leftTitle, rightTitle);
+  const chart = new Chart(document.getElementById(id), { type:"line", data:{datasets}, options:opts, plugins:[bandPlugin] });
+  chart.options.scales.x.ticks.callback = v => {
+    const span = chart.scales.x.max - chart.scales.x.min, d = new Date(v);
+    return span < 3.2*365*DAY ? d.toLocaleDateString("en-US",{timeZone:"UTC",month:"short",year:"2-digit"}) : String(d.getUTCFullYear());
+  };
+  return chart;
+}
+
+function setRange(chart, series, yearsOrAll){
+  const last = series[series.length-1][0];
+  const first = series[0][0];
+  chart.options.scales.x.min = yearsOrAll==="all" ? first : last - (+yearsOrAll)*365.25*DAY;
+  chart.options.scales.x.max = last;
+  fitY(chart);
+  chart.update("none");
+}
+
+/* tighten y-axes to visible data */
+function fitY(chart){
+  const xmin=chart.options.scales.x.min, xmax=chart.options.scales.x.max;
+  for (const axis of ["yL","yR"]){
+    let lo=Infinity, hi=-Infinity;
+    chart.data.datasets.filter(d=>d.yAxisID===axis).forEach(d=>d.data.forEach(p=>{ if(p.x>=xmin&&p.x<=xmax){ lo=Math.min(lo,p.y); hi=Math.max(hi,p.y);} }));
+    if (lo<hi){ const pad=(hi-lo)*0.08; chart.options.scales[axis].min=lo-pad; chart.options.scales[axis].max=hi+pad; }
+  }
+}
+
+function wireRange(groupName, chartGetter, seriesGetter){
+  const group = document.querySelector(`.seg[data-chart="${groupName}"]`);
+  group.addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    group.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b?"true":"false"));
+    setRange(chartGetter(), seriesGetter(), b.dataset.range);
+  });
+}
+
+function buildCharts(){
+  const tpW = weekly(DATA.tp), yW = weekly(DATA.y);
+  const durW = yW.map(p=>({x:p[0], y:modDuration(p[1])}));
+  histChart = makeChart("histChart", [
+    {label:"Term premium (%)", data:tpW.map(p=>({x:p[0],y:p[1]})), yAxisID:"yL", borderColor:css("--tp"), dp:2},
+    {label:"Modified duration (yrs)", data:durW.filter(p=>p.x>=tpW[0][0]), yAxisID:"yR", borderColor:css("--dur"), dp:2}
+  ], "Term premium, %", "Duration, years");
+  setRange(histChart, DATA.tp, "all");
+
+  const usdStart = DATA.usd[0][0];
+  usdChart = makeChart("usdChart", [
+    {label:"Term premium (%)", data:DATA.tp.filter(p=>p[0]>=usdStart).map(p=>({x:p[0],y:p[1]})), yAxisID:"yL", borderColor:css("--tp"), dp:2},
+    {label:"Broad dollar index", data:DATA.usd.map(p=>({x:p[0],y:p[1]})), yAxisID:"yR", borderColor:css("--usd"), dp:2}
+  ], "Term premium, %", "Dollar index");
+  setRange(usdChart, DATA.usd, "3");
+
+  wireRange("hist", ()=>histChart, ()=>DATA.tp);
+  wireRange("usd", ()=>usdChart, ()=>DATA.usd);
+
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener && mq.addEventListener("change", recolor);
+}
+
+function recolor(){
+  for (const [chart, cols] of [[histChart,["--tp","--dur"]],[usdChart,["--tp","--usd"]]]){
+    chart.data.datasets.forEach((d,i)=>d.borderColor=css(cols[i]));
+    for (const ax of ["x","yL","yR"]){ const s=chart.options.scales[ax]; s.ticks.color=css("--muted"); if(s.grid) s.grid.color=css("--rule"); if(s.title) s.title.color=css("--muted"); if(s.border) s.border.color=css("--rule"); }
+    chart.update("none");
+  }
+}
+
+function tableHTML(m){
+  const b=m.base;
+  const row=(label, a, z, chg, cls, note)=>`<tr${cls?` class="${cls}"`:""}><td>${label}${note?`<div class="note">${note}</div>`:""}</td><td>${a}</td><td>${z}</td><td>${chg}</td></tr>`;
+  let h = `<thead><tr><th>${fmtDate(m.startT)} to ${fmtDate(m.endT)}</th><th>Start</th><th>End</th><th>Change</th></tr></thead><tbody>`;
+  h += row("10-yr term premium", m.tp0.v.toFixed(2)+"%", m.tp1.v.toFixed(2)+"%", `<span class="${sgnClass(m.dTPbp)}">${f2(m.dTPbp,0)} bp</span>`, "key-row");
+  h += row("10-yr Treasury yield", m.y0.v.toFixed(2)+"%", m.y1.v.toFixed(2)+"%", `${f2(m.dYbp,0)} bp`);
+  h += row("Modified duration", m.D.toFixed(2)+" yrs", modDuration(m.y1.v).toFixed(2)+" yrs", "");
+  h += row("Price change from the term premium alone", "", "", `${f2(m.pxFromTP,2)}%`, "key-row", "−duration × change in term premium");
+  h += row("Price change from the full yield move", "", "", `${f2(m.pxFromY,2)}%`);
+  h += row("Broad dollar index", m.u0.v.toFixed(2), m.u1.v.toFixed(2), `<span class="${sgnClass(-m.dUSD)}">${f2(m.dUSD,2)}%</span>`, "key-row");
+  if (b){
+    h += `<tr><td colspan="4" style="padding-top:1.1rem;font-weight:600">Baseline: ${b.n} weekly changes in the ${CFG.baselineYears} years before</td></tr>`;
+    h += row("Correlation, term premium vs dollar", "", "", b.corr.toFixed(2));
+    h += row("Dollar move per +10 bp term premium", "", "", `${f2(b.beta*10,2)}%`);
+    h += row("Dollar move the baseline predicted", "", "", `${f2(m.pred,2)}%`);
+    h += row("Actual minus predicted", "", "", `${f2(m.gap,2)} pts`, "key-row");
+    h += row("Size of the surprise", "", "", `${abs(m.z,1)} sd`, "", "gap ÷ baseline residual s.d., scaled to window length");
+  }
+  return h+"</tbody>";
+}
+
+function renderDefault(m){
+  const tpWord = m.dTPbp>=0 ? "rose" : "fell";
+  const usdWord = m.dUSD>=0 ? "rose" : "fell";
+  document.getElementById("heroClaim").innerHTML =
+    `From ${fmtDate(m.startT,{year:undefined})} to ${fmtDate(m.endT)}, the 10-year term premium <b class="tp">${tpWord} ${abs(m.dTPbp,0)} basis points</b>. ` +
+    `At a duration of <b class="dur">${m.D.toFixed(1)} years</b>, that alone is a <b>${abs(m.pxFromTP,1)}% price ${m.pxFromTP<0?"loss":"gain"}</b> on a 10-year Treasury. ` +
+    `Over the same days the broad dollar index <b class="usd">${usdWord} ${abs(m.dUSD,1)}%</b>.`;
+
+  const b = m.base;
+  const paras = [];
+  paras.push(`<p><b>The other market is the U.S. dollar</b>, measured by the Federal Reserve’s nominal broad dollar index. <b>The window is ${fmtDate(m.startT)} to ${fmtDate(m.endT)}</b>: from the close two days after the April 2 tariff announcement, when the 10-year yield had briefly fallen, to the close of the following week.</p>`);
+  paras.push(`<p>In that week the term premium ${tpWord} ${abs(m.dTPbp,0)} bp and the 10-year yield moved ${f2(m.dYbp,0)} bp. With modified duration at ${m.D.toFixed(2)} years, the term-premium move by itself implies a ${f2(m.pxFromTP,2)}% change in the price of a 10-year Treasury. The dollar ${usdWord} ${abs(m.dUSD,2)}%.</p>`);
+  if (b){
+    const usual = b.corr>0.1 ? `the two usually moved in the same direction (correlation ${b.corr.toFixed(2)})`
+                : b.corr<-0.1 ? `the two already tended to move in opposite directions (correlation ${b.corr.toFixed(2)})`
+                : `the two were close to unrelated week to week (correlation ${b.corr.toFixed(2)})`;
+    paras.push(`<p>In the ${CFG.baselineYears} years before, ${usual}. Applying that baseline to this week’s term-premium change predicts a dollar move of ${f2(m.pred,2)}%. The actual move differed from that by ${f2(m.gap,2)} percentage points, a ${abs(m.z,1)}-standard-deviation surprise.</p>`);
+  }
+  if (m.dTPbp>0 && m.dUSD<0){
+    paras.push(`<p><b>Reading.</b> A higher term premium normally reflects more demand for compensation to hold Treasuries. If that came from a stronger U.S. outlook or higher expected rates, the dollar would tend to rise with it. Here investors demanded more to hold Treasuries and paid less for dollars at the same time, which is the pattern expected when holders step back from U.S. assets as a group. That is consistent with the “sell America” reading of April 2025, though one week of data cannot separate it from the other shocks of that week.</p>`);
+  } else {
+    paras.push(`<p><b>Reading.</b> In this data vintage the window does not show the term premium rising while the dollar falls, so the “sell America” reading is not supported here. Check the window dates against the chart above.</p>`);
+  }
+  document.getElementById("finding").innerHTML = paras.join("");
+  document.getElementById("defaultTable").innerHTML = tableHTML(m);
+}
+
+function renderExplore(m){
+  const el=document.getElementById("exploreTable");
+  el.innerHTML = m ? tableHTML(m) : `<tbody><tr><td>No data for that window. Pick dates after Jan 2006, when the dollar index begins.</td></tr></tbody>`;
+}
+
+function runExplore(){
+  const s=document.getElementById("exStart").value, e=document.getElementById("exEnd").value;
+  if(!s||!e) return;
+  let a=toT(s), b=toT(e); if (b<a) [a,b]=[b,a];
+  band={from:a,to:b};
+  renderExplore(measure(DATA,a,b,CFG.baselineYears));
+  if (usdChart) usdChart.update("none");
+}
+
+function showError(msg){
+  const box=document.getElementById("errorBox");
+  box.hidden=false;
+  box.innerHTML = `<section><div class="error"><p><b>The data file did not load.</b> ${msg}</p>
+  <p>To fix it, run <code>python fetch_data.py</code> in the repository folder and commit <code>data/fred.csv</code>, or run the “Update FRED data” workflow from the Actions tab on GitHub. When previewing on your own computer, serve the folder with <code>python -m http.server</code> and open <code>http://localhost:8000</code>; browsers block data files opened directly from disk.</p></div></section>`;
+  document.getElementById("heroClaim").textContent = "The data file did not load, so the numbers below are missing.";
+}
+
+async function init(){
+  if (CFG.author) document.getElementById("footer").textContent = `Term Premium Monitor, by ${CFG.author}. Built with public Federal Reserve data. Not investment advice.`;
+  let text;
+  try {
+    const r = await fetch("data/fred.csv", {cache:"no-cache"});
+    if(!r.ok) throw new Error(`Request returned status ${r.status}.`);
+    text = await r.text();
+    DATA = parseCSV(text);
+    if (!DATA.tp.length || !DATA.y.length || !DATA.usd.length) throw new Error("One of the series is empty.");
+  } catch(err){ showError(err.message); return; }
+
+  try {
+    const r = await fetch("data/meta.json", {cache:"no-cache"});
+    if (r.ok){ const meta = await r.json(); document.getElementById("retrieved").textContent = `the series on this page were last downloaded ${meta.retrieved_utc} UTC`; }
+  } catch(_){}
+
+  const last = DATA.tp[DATA.tp.length-1][0];
+  document.getElementById("status").textContent = `Term premium data through ${fmtDate(last)}.`;
+
+  if (window.Chart) buildCharts();
+  else document.getElementById("status").textContent += " Charts could not load because the charting library was blocked; the numbers below are still computed.";
+
+  const m = measure(DATA, toT(CFG.windowStart), toT(CFG.windowEnd), CFG.baselineYears);
+  if (m) renderDefault(m);
+
+  document.getElementById("exStart").value = CFG.windowStart;
+  document.getElementById("exEnd").value = CFG.windowEnd;
+  renderExplore(m);
+  document.getElementById("exGo").addEventListener("click", runExplore);
+  document.getElementById("exReset").addEventListener("click", ()=>{
+    document.getElementById("exStart").value=CFG.windowStart; document.getElementById("exEnd").value=CFG.windowEnd; runExplore();
+  });
+}
+init();
+</script>
+</body>
+</html>
