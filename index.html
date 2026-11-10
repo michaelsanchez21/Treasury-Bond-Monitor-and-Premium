@@ -217,7 +217,7 @@ function parseCSV(text){
   const head = lines[0].split(",").map(s=>s.trim());
   const col = name => head.indexOf(name);
   const iD=0, iTP=col("THREEFYTP10"), iY=col("DGS10"), iU=col("DTWEXBGS");
-  if (iTP<0||iY<0||iU<0) throw new Error("data/fred.csv is missing one of THREEFYTP10, DGS10, DTWEXBGS");
+  if (iTP<0||iY<0||iU<0) throw new Error("fred.csv is missing one of THREEFYTP10, DGS10, DTWEXBGS");
   const out = {tp:[], y:[], usd:[]};
   for (let k=1;k<lines.length;k++){
     const c = lines[k].split(",");
