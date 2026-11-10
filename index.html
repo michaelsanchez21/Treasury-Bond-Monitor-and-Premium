@@ -478,7 +478,7 @@ async function init(){
   if (CFG.author) document.getElementById("footer").textContent = `Term Premium Monitor, by ${CFG.author}. Built with public Federal Reserve data. Not investment advice.`;
   let text;
   try {
-    const r = await fetch("data/fred.csv", {cache:"no-cache"});
+    const r = await fetch("fred.csv", {cache:"no-cache"});
     if(!r.ok) throw new Error(`Request returned status ${r.status}.`);
     text = await r.text();
     DATA = parseCSV(text);
